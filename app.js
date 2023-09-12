@@ -14,7 +14,9 @@ app.use(
 );
 app.use(cookieParser());
 app.use(bodyParser.json());
-
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
+});
 app.post("/restimport", async (req, res) => {
   console.log(req.body);
   try {
@@ -116,52 +118,257 @@ app.get("/oauth2/google/callback", async (req, res) => {
     "238489563324-6rdc711u4jskjs78o1p2b0qkvgcbhbda.apps.googleusercontent.com";
   const clientSecret = "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";
   const redirectUri = "http://localhost:4000/oauth2/google/callback";
-  try {
-    const tokenResponse = await fetch(
-      "https://accounts.google.com/o/oauth2/token",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `code=${authorizationCode}&client_id=${clientId}&client_secret=${clientSecret}&redirect_uri=${redirectUri}&grant_type=authorization_code`,
-      }
-    );
+  const tokenURL = "https://oauth2.googleapis.com/token"
+  getToken(
+    authorizationCode,
+    clientId,
+    clientSecret,
+    redirectUri,
+    tokenURL,
+    res
+  );
+});
 
-    if (tokenResponse.ok) {
-      const tokenData = await tokenResponse.json();
-      const accessToken = tokenData.access_token;
+app.get("/oauth2/amazon/callback", async (req, res) => {
+  const authorizationCode = req.query.code;
+  console.log(authorizationCode, "token");
+  const clientId =
+    "amzn1.application-oa2-client.5fecbc41830f456d8505e23ad38a7398";
+  const clientSecret =
+    "amzn1.oa2-cs.v1.3b010267d9626b63426d5225c1b4821eede357a967c44859a4739f67815c0331";
+  const redirectUri = "http://localhost:4000/oauth2/amazon/callback";
+  const tokenURL = "https://api.amazon.com/auth/o2/token";
+  getToken(
+    authorizationCode,
+    clientId,
+    clientSecret,
+    redirectUri,
+    tokenURL,
+    res
+  );
+});
 
-      console.log("Access Token:", accessToken);
+app.get("/oauth2/dropbox/callback", async (req, res) => {
+  const authorizationCode = req.query.code;
+  console.log(authorizationCode, "token");
+  const clientId = "6qqt07bsiguw2xr";
+  const clientSecret = "jx45et6r120qiip";
+  const redirectUri = "http://localhost:4000/oauth2/dropbox/callback";
+  const tokenURL = "https://api.dropboxapi.com/oauth2/token";
+  getToken(
+    authorizationCode,
+    clientId,
+    clientSecret,
+    redirectUri,
+    tokenURL,
+    res
+  );
+});
 
-      const script = `
-      <script>
-        window.opener.postMessage({ accessToken: '${accessToken}' }, 'http://localhost:3000');
-        window.close();
-      </script>
-    `;
+app.get("/oauth2/github/callback", async (req, res) => {
+  const authorizationCode = req.query.code;
+  console.log(authorizationCode, "authorizationCode");
+  const clientId = "27a243ef056c2769e833";
+  const clientSecret = "9c2e770c4fb0d9cdc16bc3604a88228a430eeaea";
+  const redirectUri = "http://localhost:4000/oauth2/github/callback";
+  const tokenURL = "https://github.com/login/oauth/access_token";
+  getToken(
+    authorizationCode,
+    clientId,
+    clientSecret,
+    redirectUri,
+    tokenURL,
+    res
+  );
+  // try {
+  //   const tokenResponse = await fetch(tokenURL, {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/x-www-form-urlencoded",
+  //       Accept: "application/json", // Specify the desired response format
+  //     },
+  //     body: `code=${authorizationCode}&client_id=${clientId}&client_secret=${clientSecret}&redirect_uri=${redirectUri}&grant_type=authorization_code`,
+  //   });
 
-      res.send(script);
-    } else {
-      const script = `
-      <script>
-        window.opener.postMessage({ error: '${tokenResponse.statusText}' }, 'http://localhost:3000');
-      </script>
-    `;
+  //   if (tokenResponse.ok) {
+  //     const tokenData = await tokenResponse.json(); // Parse the JSON response
+  //     const accessToken = tokenData.access_token;
 
-      res.send(script);
-      console.error(
-        "Error exchanging authorization code for access token:",
-        tokenResponse.statusText
-      );
-    }
-  } catch (error) {
-    console.error("An error occurred:", error);
+  //     console.log("Access Token:", accessToken);
+
+  //     const script = `
+  //     <script>
+  //       window.opener.postMessage({ accessToken: '${accessToken}' }, 'http://localhost:3000');
+  //       window.close();
+  //     </script>
+  //   `;
+
+  //     res.send(script);
+  //   } else {
+  //     const script = `
+  //     <script>
+  //       window.opener.postMessage({ error: '${tokenResponse.statusText}' }, 'http://localhost:3000');
+  //     </script>
+  //   `;
+
+  //     res.send(script);
+  //     console.error(
+  //       "Error exchanging authorization code for access token:",
+  //       tokenResponse.statusText
+  //     );
+  //   }
+  // } catch (error) {
+  //   console.error("An error occurred:", error);
+  // }
+});
+
+app.get("/oauth2/facebook/callback", async (req, res) => {
+  const authorizationCode = req.query.code;
+  console.log(authorizationCode, "code");
+  const clientId = "1473684906731992";
+  const clientSecret = "cae0a08bf72b4f25a5eee71f368fac5c";
+  const redirectUri = "http://localhost:4000/oauth2/facebook/callback";
+  const tokenURL = "https://graph.facebook.com/v17.0/oauth/access_token";
+  getToken(
+    authorizationCode,
+    clientId,
+    clientSecret,
+    redirectUri,
+    tokenURL,
+    res
+  );
+});
+
+app.get("/oauth2/instagram/callback", async (req, res) => {
+  const authorizationCode = req.query.code;
+  console.log(authorizationCode, "code");
+  const clientId = "318764100563488";
+  const clientSecret = "6cae2df16696d9eda0010f2e1f011a76";
+  const redirectUri = "https://31f3-117-206-122-8.ngrok-free.app/oauth2/instagram/callback";
+  const tokenURL = "https://api.instagram.com/oauth/access_token";
+  getToken(
+    authorizationCode,
+    clientId,
+    clientSecret,
+    redirectUri,
+    tokenURL,
+    res
+  );
+});
+
+app.get("/oauth2/outlook/callback", async (req, res) => {
+  const authorizationCode = req.query.code;
+  console.log(authorizationCode, "token");
+  const clientId = "f682450d-e7e4-465b-ac7d-594983768b21";
+  const clientSecret = "wui8Q~oOc_TuKp-LFb_wVUU5ao4.abreAorOHc7t";
+  const redirectUri = "http://localhost:4000/oauth2/outlook/callback";
+  const tokenURL = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
+  getToken(
+    authorizationCode,
+    clientId,
+    clientSecret,
+    redirectUri,
+    tokenURL,
+    res
+  );
+});
+
+app.get("/oauth2/salesforce/callback", async (req, res) => {
+  const authorizationCode = req.query.code;
+  console.log(authorizationCode, "code");
+  const clientId =
+    "3MVG9pRzvMkjMb6kTELr5rYG37tFnMQMF6wzpS.AOtpmiEnLmH6k9I7xpAOh.dC_miJzsjYxqJb6NWedQ1hUt";
+  const clientSecret =
+    "29815352DD814B2337D96ACDCCAFD7344035A0E76E5B25FED98C32017F252FB6";
+  const redirectUri = "http://localhost:4000/oauth2/salesforce/callback";
+  const tokenURL = "https://login.salesforce.com/services/oauth2/token";
+  getToken(
+    authorizationCode,
+    clientId,
+    clientSecret,
+    redirectUri,
+    tokenURL,
+    res
+  );
+});
+
+app.get("/oauth2/linkedin/callback", async (req, res) => {
+  const authorizationCode = req.query.code;
+  console.log(authorizationCode, "token");
+  const clientId = "86rh0h4enp46vz";
+  const clientSecret = "ABKxJudpga7ONoir";
+  const redirectUri = "http://localhost:4000/oauth2/linkedin/callback";
+  const tokenURL = "https://www.linkedin.com/uas/oauth2/accessToken";
+  getToken(
+    authorizationCode,
+    clientId,
+    clientSecret,
+    redirectUri,
+    tokenURL,
+    res
+  );
+});
+
+app.get("/oAuthCallback.html", async (req, res) => {
+  const code = req.query.code;
+  console.log(code, "code");
+  if (code) {
+    const script = `
+    <script>
+      window.opener.postMessage({ code: '${code}' }, 'http://localhost:3000');
+      window.close();
+    </script>
+  `;
+
+    res.send(script);
   }
 });
 
+async function getToken(
+  authorizationCode,
+  clientId,
+  clientSecret,
+  redirectUri,
+  tokenURL,
+  res
+) {
 
+  const tokenResponse = await fetch(tokenURL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: `code=${authorizationCode}&client_id=${clientId}&client_secret=${clientSecret}&redirect_uri=${redirectUri}&grant_type=authorization_code`,
+  });
+  if (tokenResponse.ok) {
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData?.access_token;
 
+    console.log("Access Token:", tokenData);
+    const dataString = JSON.stringify(tokenData);
+
+    const script = `
+    <script>
+      window.opener.postMessage({ tokenData: '${dataString}' }, 'http://localhost:3000');
+      window.close();
+    </script>
+  `;
+
+    res.send(script);
+  } else {
+    const script = `
+    <script>
+      window.opener.postMessage({ error: '${tokenResponse.statusText}' }, 'http://localhost:3000');
+    </script>
+  `;
+
+    res.send(script);
+    console.error(
+      "Error exchanging authorization code for access token:",
+      tokenResponse.statusText
+    );
+  }
+}
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
