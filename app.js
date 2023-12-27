@@ -5,6 +5,8 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const app = express();
 const port = 4000;
+const baseUrl = "https://www.wavemakeronline.com/"
+const projectId = 'WMPRJ2c91808889a96400018a26070b7b2e68'
 
 app.use(
   cors({
@@ -17,20 +19,38 @@ app.use(bodyParser.json());
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
-app.post("/restimport", async (req, res) => {
-  console.log(req.body);
+app.post("/settingUpload", async (req, res) => {
   try {
     const requestBody = req.body;
     const specificCookie = req.cookies.auth_cookie;
     console.log(specificCookie);
     const configWOProxy = {
-      url: "https://www.wavemakeronline.com/studio/services/projects/WMPRJ2c91808889a96400018a1809115326df/restservices/invoke?optimizeResponse=true",
+      url: `${baseUrl}studio/services/projects/${projectId}/restservice/settings`,
       headers: { Cookie: "auth_cookie=" + specificCookie },
       method: "POST",
       data: requestBody,
     };
     const response = await axios.request(configWOProxy);
     const data = response.data;
+    res.json(data);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+})
+app.post("/restimport", async (req, res) => {
+  try {
+    const requestBody = req.body;
+    const specificCookie = req.cookies.auth_cookie;
+    console.log(specificCookie);
+    const configWOProxy = {
+      url: `${baseUrl}studio/services/projects/${projectId}/restservices/invoke?optimizeResponse=true`,
+      headers: { Cookie: "auth_cookie=" + specificCookie },
+      method: "POST",
+      data: requestBody,
+    };
+    const response = await axios.request(configWOProxy);
+    const data = response.data;
+    console.log(data);
     res.json(data);
   } catch (error) {
     res.status(500).send(error);
@@ -42,7 +62,7 @@ app.get("/get-default-provider", async (req, res) => {
     const specificCookie = req.cookies.auth_cookie;
     console.log(specificCookie);
     const configWOProxy = {
-      url: "https://www.wavemakeronline.com/studio/services/oauth2/providers/default",
+      url: `${baseUrl}studio/services/oauth2/providers/default`,
       headers: { Cookie: "auth_cookie=" + specificCookie },
       method: "GET",
     };
@@ -59,7 +79,7 @@ app.get("/getprovider", async (req, res) => {
     const specificCookie = req.cookies.auth_cookie;
     console.log(specificCookie);
     const configWOProxy = {
-      url: "https://www.wavemakeronline.com/studio/services/projects/WMPRJ2c91808889a96400018a1809115326df/oauth2/providers",
+      url: `${baseUrl}studio/services/projects/${projectId}/oauth2/providers`,
       headers: { Cookie: "auth_cookie=" + specificCookie },
       method: "GET",
     };
@@ -77,7 +97,7 @@ app.post("/addprovider", async (req, res) => {
     const specificCookie = req.cookies.auth_cookie;
     console.log(specificCookie);
     const configWOProxy = {
-      url: "https://www.wavemakeronline.com/studio/services/projects/WMPRJ2c91808889a96400018a1809115326df/oauth2/providers",
+      url: `${baseUrl}studio/services/projects/${projectId}/oauth2/providers`,
       headers: { Cookie: "auth_cookie=" + specificCookie },
       method: "POST",
       data: requestBody,
@@ -97,7 +117,7 @@ app.get("/authorizationUrl/:id", async (req, res) => {
     console.log(specificCookie);
     const configWOProxy = {
       url:
-        "https://www.wavemakeronline.com/studio/services/projects/WMPRJ2c91808889a96400018a1809115326df/oauth2/" +
+        `${baseUrl}studio/services/projects/${projectId}/oauth2/` +
         providerId +
         "/authorizationUrl",
       headers: { Cookie: "auth_cookie=" + specificCookie },
@@ -113,10 +133,10 @@ app.get("/authorizationUrl/:id", async (req, res) => {
 
 app.get("/oauth2/google/callback", async (req, res) => {
   const authorizationCode = req.query.code;
-  console.log(authorizationCode);
+  console.log(authorizationCode, "authorization code");
   const clientId =
-    "238489563324-6rdc711u4jskjs78o1p2b0qkvgcbhbda.apps.googleusercontent.com";
-  const clientSecret = "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";
+    "943762134929-41se2le56kl4vmtqc3a7b7cc19gv2b1t.apps.googleusercontent.com";
+  const clientSecret = "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";
   const redirectUri = "http://localhost:4000/oauth2/google/callback";
   const tokenURL = "https://oauth2.googleapis.com/token"
   getToken(
@@ -309,7 +329,7 @@ app.get("/oauth2/linkedin/callback", async (req, res) => {
   );
 });
 
-app.get("/oAuthCallback.html", async (req, res) => {
+app.get("studio/oAuthCallback.html", async (req, res) => {
   const code = req.query.code;
   console.log(code, "code");
   if (code) {
@@ -344,11 +364,11 @@ async function getToken(
     const tokenData = await tokenResponse.json();
     const accessToken = tokenData?.access_token;
 
-    console.log("Access Token:", tokenData);
+    console.log("Access Token:", accessToken);
     const dataString = JSON.stringify(tokenData);
-
     const script = `
     <script>
+      window.localStorage.setItem("google.access_token","${accessToken}");
       window.opener.postMessage({ tokenData: '${dataString}' }, 'http://localhost:3000');
       window.close();
     </script>

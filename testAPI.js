@@ -1,0 +1,2 @@
+const urlRegex = /^(https?|ftp):\/\/(-\.)?([^\s\/?\.#]+\.?)+(\/[^\s]*)?$/i;
+console.log(urlRegex.test("http://cloud.wavemakeronline.com/pkrq283c3ldw/JavaServicesForAutomation/services/pUTMethodServices/putByPathParams/11/Fidelity Bond Insurance"))
