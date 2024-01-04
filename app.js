@@ -53,6 +53,7 @@ app.post("/restimport", async (req, res) => {
     console.log(data);
     res.json(data);
   } catch (error) {
+    console.log(error);
     res.status(500).send(error);
   }
 });
@@ -329,19 +330,55 @@ app.get("/oauth2/linkedin/callback", async (req, res) => {
   );
 });
 
-app.get("studio/oAuthCallback.html", async (req, res) => {
-  const code = req.query.code;
-  console.log(code, "code");
-  if (code) {
-    const script = `
-    <script>
-      window.opener.postMessage({ code: '${code}' }, 'http://localhost:3000');
-      window.close();
-    </script>
-  `;
-
-    res.send(script);
+app.get("/oAuthCallback.html", async (req, res) => {
+  const url = req.url
+  var code = url.match(/code=([^&#]*)/);
+  var access_token = url.match(/access_token=([^&#]*)/), decodedURI, stateObj, parsedObj, dest;
+  access_token = access_token ? access_token[1] : undefined;
+  code = code ? code[1] : undefined;
+  decodedURI = decodeURIComponent(url);
+  stateObj = decodedURI.match(/\{([^)]+)\}/)[1];
+  stateObj = stateObj.replace(/&#34;/g, '"');
+  console.log(stateObj)
+  parsedObj = JSON.parse('{' + stateObj + '}');
+  var valueToSet = parsedObj.flow === 'implicit' ? access_token : code;
+  dest = '://services/oauth/' + parsedObj.providerId + '?access_token=' + valueToSet;
+  if (parsedObj.requestSourceType === "MOBILE") {
+    url = parsedObj.scheme + dest;
+  } else if (parsedObj.requestSourceType === "WAVELENS") {
+    url = "com.wavemaker.wavelens" + dest;
+  } else {
+    // localStorage.setItem(parsedObj.providerId + parsedObj.suffix, valueToSet);
+    // if (window.opener) {
+    //     window.opener.postMessage("oauth_success", window.location.origin);
+    // }
+    // window.close();
   }
+
+  const script = `<script>
+  localStorage.setItem('${parsedObj.providerId + parsedObj.suffix}', '${valueToSet}');
+  if (window.opener) {
+      window.opener.postMessage({ code: '${valueToSet}' }, 'http://localhost:3000')
+  }
+  window.close();
+  </script>`
+
+  res.send(script);
+  // window.opener.postMessage("oauth_success", window.location.origin);
+
+  // const code = req.query.code;
+  // const state = req.query.state
+  // console.log(code, "code");
+  // if (code) {
+  //   const script = `
+  //   <script>
+  //     window.opener.postMessage({ code: '${code}' }, 'http://localhost:3000');
+  //     window.close();
+  //   </script>
+  // `;
+
+  //   res.send(script);
+  // }
 });
 
 async function getToken(
@@ -362,8 +399,7 @@ async function getToken(
   });
   if (tokenResponse.ok) {
     const tokenData = await tokenResponse.json();
-    const accessToken = tokenData?.access_token;
-
+    const accessToken = tokenData?.access_token; 
     console.log("Access Token:", accessToken);
     const dataString = JSON.stringify(tokenData);
     const script = `
