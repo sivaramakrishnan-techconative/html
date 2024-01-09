@@ -330,7 +330,7 @@ app.get("/oauth2/linkedin/callback", async (req, res) => {
   );
 });
 
-app.get("/oAuthCallback.html", async (req, res) => {
+app.get("/studio/oAuthCallback.html", async (req, res) => {
   const url = req.url
   var code = url.match(/code=([^&#]*)/);
   var access_token = url.match(/access_token=([^&#]*)/), decodedURI, stateObj, parsedObj, dest;
@@ -338,7 +338,7 @@ app.get("/oAuthCallback.html", async (req, res) => {
   code = code ? code[1] : undefined;
   decodedURI = decodeURIComponent(url);
   stateObj = decodedURI.match(/\{([^)]+)\}/)[1];
-  stateObj = stateObj.replace(/&#34;/g, '"');
+  // stateObj = stateObj.replace(/&#34;/g, '"');
   console.log(stateObj)
   parsedObj = JSON.parse('{' + stateObj + '}');
   var valueToSet = parsedObj.flow === 'implicit' ? access_token : code;
