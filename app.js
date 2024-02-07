@@ -338,7 +338,7 @@ app.get("/studio/oAuthCallback.html", async (req, res) => {
   code = code ? code[1] : undefined;
   decodedURI = decodeURIComponent(url);
   stateObj = decodedURI.match(/\{([^)]+)\}/)[1];
-  // stateObj = stateObj.replace(/&#34;/g, '"');
+  stateObj = stateObj.replace(/&#34;/g, '"');
   console.log(stateObj)
   parsedObj = JSON.parse('{' + stateObj + '}');
   var valueToSet = parsedObj.flow === 'implicit' ? access_token : code;
